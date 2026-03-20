@@ -1,0 +1,48 @@
+[package]
+name = "vauth"
+version = "0.1.0"
+edition = "2021"
+description = "Voice authentication system using kalosm_sound"
+license = "MIT"
+readme = "README.md"
+
+[dependencies]
+# Audio processing and voice analysis
+kalosm_sound = "0.2"
+hound = "3.5"              # WAV file handling
+cpal = "0.15"              # Cross-platform audio I/O
+
+# Cryptography for secure authentication
+argon2 = "0.5"             # Password hashing for voice print protection
+sha2 = "0.10"              # SHA-2 hashing
+hmac = "0.12"              # Message authentication
+rand = "0.8"               # Secure random generation
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"            # Binary serialization for voice prints
+
+# Error handling and logging
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1.0"
+
+# CLI interface
+clap = { version = "4.4", features = ["derive"] }
+
+# Async runtime (optional, for future API support)
+tokio = { version = "1.35", features = ["full"], optional = true }
+
+[dev-dependencies]
+tempfile = "3.10"
+mockall = "0.12"
+
+[features]
+default = []
+api = ["tokio"]
+
+[[bin]]
+name = "vauth"
+path = "src/main.rs"

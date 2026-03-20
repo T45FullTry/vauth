@@ -1,0 +1,56 @@
+# Rust
+/target/
+**/target/
+**/*.rs.bk
+Cargo.lock
+
+# Build outputs
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Debug
+*.pdb
+*.ilk
+
+# Test coverage
+*.gcno
+*.gcda
+*.lcov
+coverage/
+tarpaulin-report.html
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Voice prints (sensitive biometric data - never commit)
+voice_prints/
+*.vprint
+*.vprint.bak
+
+# Audio recordings
+recordings/
+*.wav
+*.mp3
+*.flac
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+
+# Temporary
+tmp/
+temp/
+*.tmp
