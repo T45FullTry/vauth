@@ -33,6 +33,7 @@ Vauth provides secure voice-based authentication by:
 
 ## Features
 
+### Core Features
 - 🔒 **Secure Storage** - Voice prints encrypted with Argon2 hashing
 - 🎤 **Live Recording** - Real-time voice capture from microphone
 - 📊 **Confidence Scoring** - Match confidence 0.0-1.0
@@ -40,6 +41,14 @@ Vauth provides secure voice-based authentication by:
 - 📁 **File Verification** - Verify pre-recorded audio files
 - 🛡️ **Integrity Checks** - SHA-256 hash verification
 - 📝 **Detailed Logging** - Tracing-based observability
+
+### Full-Stack Features
+- 🌐 **React Frontend** - Modern UI with TypeScript
+- 🔐 **JWT Authentication** - Secure token-based auth
+- 💾 **PostgreSQL Storage** - Production-ready database
+- 🎨 **Voice Visualization** - Real-time waveform display
+- 📱 **Responsive Design** - Mobile-friendly interface
+- 🔑 **User Management** - Profile and settings dashboard
 
 ## Installation
 
@@ -133,6 +142,152 @@ Voice prints are:
 - Encrypted with Argon2 password hashing
 - Integrity-protected with SHA-256
 - Stored with restrictive file permissions (0600)
+- Backed up before updates
+
+## API Reference
+
+### VoicePrint
+
+```rust
+// Create new voice print
+let print = VoicePrint::new(user_id, features)?;
+
+// Load from file
+let print = VoicePrint::load("./alice.vprint")?;
+
+// Save to file
+print.save("./alice.vprint")?;
+
+// Verify integrity
+let valid = print.verify_integrity()?;
+```
+
+### Authenticator
+
+```rust
+// Create authenticator
+let auth = Authenticator::new(stored_print);
+
+// Live authentication
+let success = auth.authenticate_live(user_id)?;
+
+// Verify audio file
+let success = auth.verify_audio_file("./test.wav", 0.75)?;
+
+// Detailed result
+let result = auth.authenticate_detailed(user_id)?;
+println!("Confidence: {}", result.confidence);
+```
+
+## Testing
+
+```bash
+# Run all tests
+cargo test
+
+# Run tests with output
+cargo test -- --nocapture
+
+# Run specific module tests
+cargo test voice_features
+cargo test auth
+```
+
+## Development
+
+### Enable Verbose Logging
+
+```bash
+RUST_LOG=debug ./target/release/vauth enroll --user-id test --verbose
+```
+
+### Add New Features
+
+1. Update `voice_features.rs` for new feature extraction
+2. Update `VoiceFeatures` struct with new fields
+3. Update comparison logic in `compare_features()`
+4. Update serialization in `voice_print.rs`
+
+### Integration with kalosm_sound
+
+For production ML-based features:
+
+```rust
+// Replace simplified extraction with kalosm_sound
+use kalosm_sound::prelude::*;
+
+let model = MfccModel::default();
+let features = model.extract(samples)?;
+```
+
+## Security Considerations
+
+⚠️ **Important:**
+
+1. **Voice prints are biometric data** - treat as sensitive PII
+2. **Liveness detection is simplified** - production needs robust anti-spoofing
+3. **Threshold tuning** - adjust based on security requirements
+4. **Rate limiting** - implement attempt limits in production
+5. **Encryption at rest** - consider additional encryption layer
+
+## Troubleshooting
+
+### No Input Device
+
+```
+Error: No input device available
+```
+
+**Fix:** Ensure microphone is connected and recognized by OS.
+
+### Feature Extraction Failed
+
+```
+Error: Feature extraction failed
+```
+
+**Fix:** Ensure audio quality (SNR > 20dB), check sample rate (44100 Hz).
+
+### Integrity Check Failed
+
+```
+Error: Voice print integrity verification failed
+```
+
+**Fix:** File may be corrupted. Re-enroll user or restore from backup.
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Contributing
+
+1. Fork repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## Roadmap
+
+- [ ] WebSocket API for remote authentication
+- [ ] Multi-enrollment averaging (improve accuracy)
+- [ ] Challenge-response liveness detection
+- [ ] Speaker diarization for multi-speaker scenarios
+- [ ] Cloud storage backend with KMS encryption
+- [ ] Mobile SDK (iOS/Android)
+
+---
+
+**Vauth** - Secure voice authentication for the modern age.
+roid)
+- [ ] Admin dashboard
+- [ ] Analytics and monitoring
+
+---
+
+**Vauth** - Secure voice authentication for the modern age.
+ (0600)
 - Backed up before updates
 
 ## API Reference
