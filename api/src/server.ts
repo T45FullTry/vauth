@@ -4,9 +4,13 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
 import authRoutes from './routes/auth.js';
 import voiceRoutes from './routes/voice.js';
 import userRoutes from './routes/users.js';
+import { setupWSAuthServer } from './websocket/auth.js';
+import { applyAPIRateLimit, startRateLimitCleanup } from './middleware/rateLimit.js';
 
 dotenv.config();
 
@@ -15,6 +19,19 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const WS_PORT = process.env.WS_PORT || 8081;
+
+// Create HTTP server
+const httpServer = createServer(app);
+
+// Create WebSocket server
+const wss = new WebSocketServer({ 
+  port: parseInt(WS_PORT.toString()),
+  path: '/ws/auth',
+});
+
+// Setup WebSocket authentication
+setupWSAuthServer(wss);
 
 // Security middleware
 app.use(helmet());
@@ -35,10 +52,32 @@ app.use((req, res, next) => {
   next();
 });
 
+// Apply global API rate limiting
+app.use('/api', applyAPIRateLimit());
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/voice', voiceRoutes);
 app.use('/api/users', userRoutes);
+
+// Rate limit monitoring endpoint
+app.get('/api/monitoring/rate-limit', async (req, res) => {
+  const { getRateLimitStats } = await import('./middleware/rateLimit.js');
+  const stats = await getRateLimitStats();
+  
+  if (stats) {
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      stats,
+    });
+  } else {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch rate limit stats',
+    });
+  }
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -68,17 +107,21 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
+// Start rate limit cleanup
+startRateLimitCleanup();
+
 // Start server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                    Vauth API Server                        ║
 ╠═══════════════════════════════════════════════════════════╣
-║  Server running on: http://localhost:${PORT}                 ║
+║  REST API:    http://localhost:${PORT}                       ║
+║  WebSocket:   ws://localhost:${WS_PORT}/ws/auth              ║
 ║  Environment: ${process.env.NODE_ENV || 'development'}                           ║
-║  Database: ${process.env.DB_NAME || 'vauth'}                                     ║
+║  Database:    ${process.env.DB_NAME || 'vauth'}                                     ║
 ╠═══════════════════════════════════════════════════════════╣
-║  API Endpoints:                                            ║
+║  REST API Endpoints:                                       ║
 ║  POST /api/auth/register   - User registration            ║
 ║  POST /api/auth/login      - User login                   ║
 ║  GET  /api/auth/me         - Get current user             ║
@@ -90,6 +133,12 @@ app.listen(PORT, () => {
 ║  DELETE /api/voice/print   - Delete voice print           ║
 ║  GET  /api/users/profile   - Get user profile             ║
 ║  PUT  /api/users/profile   - Update profile               ║
+╠═══════════════════════════════════════════════════════════╣
+║  WebSocket Actions:                                        ║
+║  auth_request       - Start auth session                  ║
+║  challenge_response - Respond to challenge                ║
+║  voice_verify       - Verify voice biometric              ║
+║  session_close      - Close session                       ║
 ╚═══════════════════════════════════════════════════════════╝
   `);
 });

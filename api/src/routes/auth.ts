@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import db from '../db/index.js';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
+import { applyAuthRateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
 
@@ -23,6 +24,9 @@ const loginSchema = z.object({
   password: z.string(),
   voiceFeatures: z.array(z.number()),
 });
+
+// Apply rate limiting to auth endpoints
+router.use(applyAuthRateLimit());
 
 // POST /auth/register
 router.post('/register', async (req: Request, res: Response) => {

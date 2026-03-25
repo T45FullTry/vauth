@@ -128,6 +128,25 @@ User Management
   PUT    /api/users/profile    - Update profile
 ```
 
+### WebSocket Endpoints
+
+```
+WebSocket: ws://localhost:8081/ws/auth
+
+Actions (Client → Server)
+  auth_request       - Start authentication session
+  challenge_response - Respond to challenge string
+  voice_verify       - Verify voice biometric
+  session_close      - Close session manually
+
+Actions (Server → Client)
+  auth_challenge     - Send challenge string
+  auth_result        - Authentication success/failure
+  session_error      - Error occurred
+  session_closed     - Session terminated
+  heartbeat          - Keep-alive ping
+```
+
 ### Request/Response Format
 
 All requests/responses use JSON:
